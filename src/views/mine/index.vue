@@ -11,7 +11,7 @@
 <script>
     import Header from '@/components/Header';
     import Footer from '@/components/Footer';
-    import Login from '@/components/login'
+    import Login from '@/components/login';
 
     export default {
         name: "mine",
