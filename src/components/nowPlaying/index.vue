@@ -1,43 +1,87 @@
 <template>
-    <div class="movie_body">
-        <ul>
-            <!--循环展示-->
-            <li :key="item.id" v-for="item in movieList">
-                <!--将图片格式化显示-->
-                <div class="pic_show"><img v-bind:src="item.img | setWH('128.180')"></div>
-                <div class="info_list">
-                    <!--显示名称与显示3D标识-->
-                    <h2>{{item.nm}} <img src="@/assets/maxs.png" v-if="item.version"></h2>
-                    <p>观众评 <span class="grade">{{item.sc}}</span></p>
-                    <p>{{item.star}}</p>
-                    <p>{{item.showInfo}}</p>
-                </div>
-                <div class="btn_mall">
-                    购票
-                </div>
-            </li>
-        </ul>
+    <div class="movie_body" ref="movie_body">
+        <scroller :handleToScroll="handleToScroll" :handleToTouchEnd="handleToTouchEnd">
+            <ul>
+                <li class="pullDown">{{pullDownMessage}}</li>
+                <!--循环展示-->
+                <li :key="item.id" v-for="item in movieList">
+                    <!--将图片格式化显示-->
+                    <div @tap="handleToDetail" class="pic_show"><img v-bind:src="item.img | setWH('128.180')"></div>
+                    <div class="info_list">
+                        <!--显示名称与显示3D标识-->
+                        <h2>{{item.nm}} <img src="@/assets/maxs.png" v-if="item.version"></h2>
+                        <p>观众评 <span class="grade">{{item.sc}}</span></p>
+                        <p>{{item.star}}</p>
+                        <p>{{item.showInfo}}</p>
+                    </div>
+                    <div class="btn_mall">
+                        购票
+                    </div>
+                </li>
+            </ul>
+        </scroller>
+
     </div>
 </template>
 
 <script>
+
+    // import BScroll from 'better-scroll'
+
     export default {
         name: "nowPlaying",
         data() {
             return {
                 //定义数据数组
                 movieList: [],
+                pullDownMessage: '',
+                //当前城市的id
+                prevCityId: -1,
             }
         },
-        mounted() {
+        activated() {
+            let cityId = this.$store.state.city.id;
+            if (this.prevCityId === cityId) {
+                return;
+            }
+
             //获取数据
-            this.axios.get('/api/movieOnInfoList?cityId=10').then((res => {
-                var msg = res.data.msg;
+            this.axios.get('/api/movieOnInfoList?cityId=' + cityId).then((res) => {
+                let msg = res.data.msg;
                 if (msg === 'ok') {
                     this.movieList = res.data.data.movieList;
-                    // console.log(this.movieList)
+                    this.prevCityId = cityId;
                 }
-            }))
+            });
+        },
+        methods: {
+            handleToDetail() {
+                // console.log('handleToDetail');
+            },
+
+            handleToScroll(pos) {
+                if (pos.y > 30) {
+                    // console.log("scroll");
+                    this.pullDownMessage = "正在更新中";
+                }
+            },
+
+            handleToTouchEnd(pos) {
+                // console.log("touchEnd");
+                if (pos.y > 30) {
+                    this.axios.get('/api/movieOnInfoList?cityId=1').then((res) => {
+                        let msg = res.data.msg;
+                        if (msg === 'ok') {
+                            this.pullDownMessage = "已更新完成";
+                            setTimeout(() => {
+                                this.movieList = res.data.data.movieList;
+                                this.pullDownMessage = '';
+                            }, 500);
+                        }
+                    });
+                }
+
+            }
         }
     }
 </script>
@@ -123,4 +167,11 @@
     .movie_body .btn_pre {
         background-color: #3c9fe6;
     }
+
+    .movie_body .pullDown {
+        margin: 0px;
+        padding: 0px;
+        border: 0px;
+    }
+
 </style>
