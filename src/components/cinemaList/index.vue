@@ -1,23 +1,25 @@
 <template>
     <div class="cinema_body">
-        <ul>
-            <li :key="cinema.id" v-for="cinema in cinemas">
-                <div>
-                    <span>{{cinema.nm}}</span>
-                    <span class="q"><span class="price">{{cinema.sellPrice}}</span> 元起</span>
-                </div>
-                <div class="address">
-                    <span>{{cinema.addr}}</span>
-                    <span>{{cinema.distance}}</span>
-                </div>
-                <div class="card">
-                    <!-- -->
-                    <div :key="key" v-bind:class="key| classCard" v-for="(num,key) in cinema.tag" v-if="num === 1">{{key
-                        | formatCard}}
+        <Scroller>
+            <ul>
+                <li :key="cinema.id" v-for="cinema in cinemas">
+                    <div>
+                        <span>{{cinema.nm}}</span>
+                        <span class="q"><span class="price">{{cinema.sellPrice}}</span> 元起</span>
                     </div>
-    </div>
-    </li>
-        </ul>
+                    <div class="address">
+                        <span>{{cinema.addr}}</span>
+                        <span>{{cinema.distance}}</span>
+                    </div>
+                    <div class="card">
+                        <!--使用过滤器对tag数组中的数据进行过滤-->
+                        <div :key="key" v-bind:class="key| classCard" v-for="(num,key) in cinema.tag" v-if="num === 1">
+                            {{key | formatCard}}
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </Scroller>
     </div>
 </template>
 
@@ -26,18 +28,27 @@
         name: "cinemaList",
         data() {
             return {
-                cinemas: []
+                cinemas: [],
+                //当前城市的id
+                prevCityId: -1,
             }
         },
         mounted() {
-            this.axios.get('/api/cinemaList?cityId=10').then((res => {
-                var msg = res.data.msg;
+            let cityId = this.$store.state.city.id;
+            if (this.prevCityId === cityId) {
+                return;
+            }
+
+            this.axios.get('/api/cinemaList?cityId=' + cityId).then((res => {
+                let msg = res.data.msg;
                 if (msg === 'ok') {
                     this.cinemas = res.data.data.cinemas;
+                    this.prevCityId = cityId;
                 }
             }))
         },
         filters: {
+            //过滤tag标签
             formatCard(key) {
                 let card = [
                     {key: 'allowRefund', value: '退款'},
@@ -52,6 +63,7 @@
                 }
                 return '';
             },
+            //给tag标签添加不同的样式
             classCard(key) {
                 let card = [
                     {key: 'allowRefund', value: 'bl'},

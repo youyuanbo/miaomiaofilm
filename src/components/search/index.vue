@@ -45,17 +45,17 @@
         },
         watch: {
             message(newValue) {
-                var that = this;
-                console.log(newValue);
+                let that = this;
+                let cityId = this.$store.city.id;
                 //获取数据
-                this.axios.get('/api/searchList?cityId=10&kw=' + newValue, {
+                this.axios.get('/api/searchList?cityId=' + cityId + '&kw=' + newValue, {
                     //防手抖
                     cancelToken: new this.axios.CancelToken(function (c) {
                         that.source = c;
                     })
                 }).then((res => {
-                    var msg = res.data.msg;
-                    var movies = res.data.data.movies;
+                    let msg = res.data.msg;
+                    let movies = res.data.data.movies;
 
                     if (msg && movies) {
                         this.movieList = res.data.data.movies.list;

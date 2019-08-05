@@ -1,34 +1,40 @@
 <template>
     <div class="city_body">
-
         <div class="city_list">
-            <div class="city_hot">
-                <h2>热门城市</h2>
-                <ul class="clearfix">
-                    <!--循环热门城市列表，显示热门城市名称-->
-                    <li :key="item.id" v-for="item in hotList">{{item.nm}}</li>
-                </ul>
-            </div>
+            <Scroller ref="city_list">
+                <div>
+                    <div class="city_hot">
+                        <h2>热门城市</h2>
+                        <ul class="clearfix">
+                            <!--循环热门城市列表，显示热门城市名称-->
+                            <li @tap="handleToCity(item.nm,item.id)" v-bind:key="item.id" v-for="item in hotList">
+                                {{item.nm}}
+                            </li>
+                        </ul>
+                    </div>
 
-            <!--双重循环，显示城市索引和城市名称-->
-            <div class="city_sort" ref="city_sort">
-                <!--循环城市列表-->
-                <div :key="item.index" v-for="item in cityList">
-                    <!--显示城市索引-->
-                    <h2>{{item.index}}</h2>
-                    <ul>
-                        <!--循环当前城市索引对应的城市列表，并显示当前城市名称-->
-                        <li :key="city.id" v-for="city in item.list">
-                            {{city.nm}}
-                        </li>
-                    </ul>
+                    <!--双重循环，显示城市索引和城市名称-->
+                    <div class="city_sort" ref="city_sort">
+                        <!--循环城市列表-->
+                        <div v-bind:key="item.index" v-for="item in cityList">
+                            <!--显示城市索引-->
+                            <h2>{{item.index}}</h2>
+                            <ul>
+                                <!--循环当前城市索引对应的城市列表，并显示当前城市名称-->
+                                <li @tap="handleToCity(city.nm,city.id)" v-bind:key="city.id" v-for="city in item.list">
+                                    {{city.nm}}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </Scroller>
+
         </div>
 
         <div class="city_index">
             <ul>
-                <li v-for="(item,index) in cityList" :key="item.index" @touchstart="handleToIndex(index)">
+                <li :key="item.index" @touchstart="handleToIndex(index)" v-for="(item,index) in cityList">
                     {{item.index}}
                 </li>
             </ul>
@@ -50,30 +56,40 @@
         },
         //接受来自api的数据
         mounted() {
-            this.axios.get('/api/cityList').then((res => {
-                var msg = res.data.msg;
-                if (msg === 'ok') {
-                    var cities = res.data.data.cities;
-                    var {cityList, hotList} = this.formatCityList(cities);
-                    this.cityList = cityList;
-                    this.hotList = hotList;
 
-                }
-            }))
+            let cityList = window.localStorage.getItem('cityList');
+            let hotList = window.localStorage.getItem('hotList');
+
+            if (cityList && hotList) {
+                this.cityList = JSON.parse(cityList);
+                this.hotList = JSON.parse(hotList);
+            } else {
+                this.axios.get('/api/cityList').then((res => {
+                    let msg = res.data.msg;
+                    if (msg === 'ok') {
+                        let cities = res.data.data.cities;
+                        let {cityList, hotList} = this.formatCityList(cities);
+                        this.cityList = cityList;
+                        this.hotList = hotList;
+                        window.localStorage.setItem('cityList', JSON.stringify(cityList));
+                        window.localStorage.setItem('hotList', JSON.stringify(hotList));
+                    }
+                }));
+            }
         },
         methods: {
             //格式化数据，将数据分组
             formatCityList(cities) {
-                var cityList = [];
-                var hotList = [];
+                let cityList = [];
+                let hotList = [];
                 //循环，根据首字母将城市分组
-                for (var i = 0; i < cities.length; i++) {
-                    var firstLetter = cities[i].py.substring(0, 1).toUpperCase();
+                for (let i = 0; i < cities.length; i++) {
+                    let firstLetter = cities[i].py.substring(0, 1).toUpperCase();
 
                     if (toCom(firstLetter)) {    //新添加
                         cityList.push({index: firstLetter, list: [{nm: cities[i].nm, id: cities[i].id}]})
                     } else {     //累加
-                        for (var j = 0; j < cityList.length; j++) {
+                        for (let j = 0; j < cityList.length; j++) {
                             //如果已经存在以此首字母为首的城市，则将此城市添加到对应的列表中
                             if (cityList[j].index === firstLetter) {
                                 cityList[j].list.push({nm: cities[i].nm, id: cities[i].id})
@@ -94,7 +110,7 @@
                 });
 
                 //循环，找出所有的热门城市
-                for (var i = 0; i < cities.length; i++) {
+                for (let i = 0; i < cities.length; i++) {
                     if (cities[i].isHot === 1) {
                         hotList.push(cities[i])
                     }
@@ -102,7 +118,7 @@
 
                 //比较，查看是否已经存在当前以此字母为首的城市，如果存在，返回false；如果不存在，返回true
                 function toCom(firstLetter) {
-                    for (var i = 0; i < cityList.length; i++) {
+                    for (let i = 0; i < cityList.length; i++) {
                         if (cityList[i].index === firstLetter) {
                             return false;
                         }
@@ -118,9 +134,19 @@
             },
 
             //根据索引跳转
-            handleToIndex(index){
-                var h2 = this.$refs.city_sort.getElementsByTagName('h2');
-                this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop;
+            handleToIndex(index) {
+                let h2 = this.$refs.city_sort.getElementsByTagName('h2');
+                this.$refs.city_list.toScrollTop(-h2[index].offsetTop)
+            },
+
+            handleToCity(nm, id) {
+                //将选择的城市提交给stores,进行状态管理与城市切换
+                this.$store.commit('city/CITY_INFO', {nm, id});
+                //将切换后的数据存储起来,保证在下次刷新时,城市记录还在
+                window.localStorage.setItem('nowNm', nm);
+                window.localStorage.setItem('nowId', id);
+                //路由跳转,选择城市后,直接跳转到此城市的正在热映面板
+                this.$router.push('/movie/nowPlaying');
             }
         }
     }

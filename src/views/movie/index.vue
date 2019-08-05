@@ -4,13 +4,14 @@
         <div id="content">
             <div class="movie_menu">
                 <router-link class="city_name" tag="div" to="/movie/city">
-                    <span>大连</span><i class="iconfont icon-lower-triangle"></i>
+                    <span>{{ $store.state.city.nm}}</span>
+                    <i class="iconfont icon-lower-triangle"></i>
                 </router-link>
                 <div class="hot_swtich">
                     <router-link class="hot_item" tag="div" to="/movie/nowPlaying">正在热映</router-link>
                     <router-link class="hot_item" tag="div" to="/movie/comingSoon">即将上映</router-link>
                 </div>
-                <router-link tag="div" to="/movie/search" class="search_entry">
+                <router-link class="search_entry" tag="div" to="/movie/search">
                     <i class="iconfont icon-sousuo"></i>
                 </router-link>
             </div>
@@ -18,8 +19,9 @@
                 <router-view/>
             </keep-alive>
         </div>
-        <!--        <NowPlaying/>-->
+        <!--<NowPlaying/>-->
         <Footer/>
+
     </div>
 </template>
 
@@ -27,20 +29,46 @@
 
     import Header from '@/components/Header';
     import Footer from '@/components/Footer';
-    // import NowPlaying from '@/components/nowPlaying';
-    // import ComingSoon from '@/components/comingSoon';
-    // import City from '@/components/city';
-    // import Search from '@/components/search';
+    import {messageBox} from '@/components/JS'
+
 
     export default {
         name: "movie",
         components: {
             Header,
             Footer,
-            // NowPlaying,
-            // ComingSoon,
-            // City,
-            // Search
+        },
+        mounted() {
+
+            setTimeout(() => {
+                this.axios.get("/api/getLocation").then((res) => {
+                    let msg = res.data.msg;
+                    let nm = res.data.data.nm;
+                    let id = res.data.data.id;
+
+                    if (id == this.$store.state.city.id) {
+                        return;
+                    }
+                    if (msg === 'ok') {
+                        messageBox({
+                            title: '定位',
+                            content: nm,
+                            cancel: '取消',
+                            ok: '切换定位',
+                            handleOk() {
+                                //1、更改状态管理
+
+                                //2、更改本地存储
+                                window.localStorage.setItem("nowId", id);
+                                window.localStorage.setItem("nowNm", nm);
+                                window.location.reload();
+                            }
+                        });
+                    }
+                });
+            }, 500);
+
+
         }
     }
 </script>
@@ -76,6 +104,7 @@
         color: #ef4238;
         border-bottom: 2px #ef4238 solid;
     }
+
     .movie_menu .city_name.router-link-active {
         color: #ef4238;
         border-bottom: 2px #ef4238 solid;
