@@ -4,12 +4,14 @@
             <ul>
                 <li class="pullDown">{{pullDownMessage}}</li>
                 <!--循环展示-->
-                <li :key="item.id" v-for="item in movieList">
+                <li :key="item.id" v-for="item in movieList" >
                     <!--将图片格式化显示-->
-                    <div @tap="handleToDetail" class="pic_show"><img v-bind:src="item.img | setWH('128.180')"></div>
+                    <div @tap="handleToDetail(item.id)" class="pic_show"><img v-bind:src="item.img | setWH('128.180')">
+                    </div>
                     <div class="info_list">
                         <!--显示名称与显示3D标识-->
-                        <h2>{{item.nm}} <img src="@/assets/maxs.png" v-if="item.version"></h2>
+                        <h2 @tap="handleToDetail(item.id)">{{item.nm}} <img src="@/assets/maxs.png" v-if="item.version">
+                        </h2>
                         <p>观众评 <span class="grade">{{item.sc}}</span></p>
                         <p>{{item.star}}</p>
                         <p>{{item.showInfo}}</p>
@@ -37,6 +39,7 @@
                 pullDownMessage: '',
                 //当前城市的id
                 prevCityId: -1,
+
             }
         },
         activated() {
@@ -55,8 +58,9 @@
             });
         },
         methods: {
-            handleToDetail() {
-                // console.log('handleToDetail');
+            handleToDetail(movieId) {
+                // console.log(movieId);
+                this.$router.push('/movie/detail/1/' + movieId);
             },
 
             handleToScroll(pos) {
@@ -69,7 +73,8 @@
             handleToTouchEnd(pos) {
                 // console.log("touchEnd");
                 if (pos.y > 30) {
-                    this.axios.get('/api/movieOnInfoList?cityId=1').then((res) => {
+                    let cityId = this.$store.state.city.id;
+                    this.axios.get('/api/movieOnInfoList?cityId=' + cityId).then((res) => {
                         let msg = res.data.msg;
                         if (msg === 'ok') {
                             this.pullDownMessage = "已更新完成";
