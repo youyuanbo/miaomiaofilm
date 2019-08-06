@@ -15,12 +15,18 @@
                     <i class="iconfont icon-sousuo"></i>
                 </router-link>
             </div>
+            <!--记录上次。。。-->
             <keep-alive>
+                <!--配置路由-->
                 <router-view/>
             </keep-alive>
         </div>
         <!--<NowPlaying/>-->
         <Footer/>
+
+        <!--配置详情页面的路由显示-->
+        <router-view name="detail"/>
+
 
     </div>
 </template>
@@ -30,7 +36,6 @@
     import Header from '@/components/Header';
     import Footer from '@/components/Footer';
     import {messageBox} from '@/components/JS'
-
 
     export default {
         name: "movie",
@@ -67,8 +72,6 @@
                     }
                 });
             }, 500);
-
-
         }
     }
 </script>

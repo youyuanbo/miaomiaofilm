@@ -3,9 +3,11 @@
         <Scroller>
             <ul>
                 <li :key="item.id" v-for="item in comingList">
-                    <div class="pic_show"><img v-bind:src="item.img | setWH('128.180')"></div>
+                    <div @tap="handleToDetail(item.id)" class="pic_show"><img v-bind:src="item.img | setWH('128.180')">
+                    </div>
                     <div class="info_list">
-                        <h2>{{item.nm}} <img src="@/assets/maxs.png" v-if="item.version"></h2>
+                        <h2 @tap="handleToDetail(item.id)">{{item.nm}} <img src="@/assets/maxs.png" v-if="item.version">
+                        </h2>
                         <p><span class="person">{{item.wish}}</span> 人想看</p>
                         <p>{{item.star}}</p>
                         <p>{{item.showInfo}}</p>
@@ -44,6 +46,12 @@
                     this.prevCityId = cityId;
                 }
             }))
+        },
+        methods: {
+            handleToDetail(movieId) {
+                // console.log(movieId);
+                this.$router.push('/movie/detail/2/' + movieId);
+            },
         }
     }
 </script>
