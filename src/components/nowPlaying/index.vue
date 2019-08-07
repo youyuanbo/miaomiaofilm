@@ -4,7 +4,7 @@
             <ul>
                 <li class="pullDown">{{pullDownMessage}}</li>
                 <!--循环展示-->
-                <li :key="item.id" v-for="item in movieList" >
+                <li :key="item.id" v-for="item in movieList">
                     <!--将图片格式化显示-->
                     <div @tap="handleToDetail(item.id)" class="pic_show"><img v-bind:src="item.img | setWH('128.180')">
                     </div>
@@ -59,7 +59,6 @@
         },
         methods: {
             handleToDetail(movieId) {
-                // console.log(movieId);
                 this.$router.push('/movie/detail/1/' + movieId);
             },
 
